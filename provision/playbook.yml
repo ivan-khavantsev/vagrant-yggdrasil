@@ -21,7 +21,7 @@
       apt:
         name: ['yggdrasil']
         state: present
-      register: yggdrasil-install  
+      register: yggdrasil_install  
     
     - name: Enable service yggdrasil
       service:
@@ -31,7 +31,7 @@
          
     - name: Generate yggdrasil conf
       shell: yggdrasil -genconf > /etc/yggdrasil/yggdrasil.conf
-      when: yggdrasil-install.changed
+      when: yggdrasil_install.changed
          
     - name: Install Dante
       apt:
