@@ -1,0 +1,52 @@
+- hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+      
+    - name: Set timezone to Asia/Almaty
+      community.general.timezone:
+        name: Asia/Almaty  
+
+    - name: Update apt cache
+      apt: 
+        update_cache: yes
+    
+    - name: Install System Utilites
+      apt: 
+        name: ['mc', 'ca-certificates', 'curl', 'gnupg', 'lsb-release']
+        state: present
+
+    - name: Install yggdrasil
+      apt:
+        name: ['yggdrasil']
+        state: present
+      register: yggdrasil-install  
+    
+    - name: Enable service yggdrasil
+      service:
+         name: yggdrasil
+         enabled: yes
+         state: started
+         
+    - name: Generate yggdrasil conf
+      shell: yggdrasil -genconf > /etc/yggdrasil/yggdrasil.conf
+      when: yggdrasil-install.changed
+         
+    - name: Install Dante
+      apt:
+        name: ['dante-server']
+        state: present        
+      
+    - name: Configure danted
+      template: 
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - {src: "templates/danted.conf", dest: "/etc/danted.conf"}
+      
+    - name: Enable service danted
+      service:
+         name: danted
+         enabled: yes
+         state: started    
