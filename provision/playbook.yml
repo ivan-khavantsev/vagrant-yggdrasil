@@ -41,6 +41,14 @@
         value: "/usr/sbin/yggdrasil -useconffile /vagrant/yggdrasil.conf"
         state: present
     
+    - name: Start service yggdrasil after vagrant shared folder mounted
+      community.general.ini_file:
+        path: /lib/systemd/system/yggdrasil.service
+        section: Unit
+        option: After
+        value: "network-online.target vagrant.mount"
+        state: present
+    
     - name: Generate yggdrasil conf
       shell: yggdrasil -genconf > /vagrant/yggdrasil.conf
       when: yggdrasil_config_exist.changed
@@ -74,8 +82,8 @@
         path: /lib/systemd/system/danted.service
         section: Unit
         option: After
-        value: "network-online.target yggdrasil.service"
-        state: present
+        value: "yggdrasil.service"
+        state: present 
     
     - name: Enable service danted
       service:
