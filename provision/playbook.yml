@@ -23,30 +23,62 @@
         state: present
       register: yggdrasil_install  
     
+    - name: ensure file exists
+      copy:
+        content: ""
+        dest: /vagrant/yggdrasil.conf
+        force: no
+        group: sys
+        owner: root
+      register: yggdrasil_config_exist
+      when: yggdrasil_install.changed
+    
+    - name: Change yggdrasil config path
+      community.general.ini_file:
+        path: /lib/systemd/system/yggdrasil.service
+        section: Service
+        option: ExecStart
+        value: "/usr/sbin/yggdrasil -useconffile /vagrant/yggdrasil.conf"
+        state: present
+    
+    - name: Generate yggdrasil conf
+      shell: yggdrasil -genconf > /vagrant/yggdrasil.conf
+      when: yggdrasil_config_exist.changed
+
     - name: Enable service yggdrasil
       service:
          name: yggdrasil
          enabled: yes
          state: started
          
-    - name: Generate yggdrasil conf
-      shell: yggdrasil -genconf > /etc/yggdrasil/yggdrasil.conf
-      when: yggdrasil_install.changed
-         
     - name: Install Dante
       apt:
         name: ['dante-server']
         state: present        
       
-    - name: Configure danted
+    - name: Configure templates
       template: 
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
       loop:
-        - {src: "templates/danted.conf", dest: "/etc/danted.conf"}
+        - {src: "templates/danted.conf", dest: "/etc/danted.conf"} 
       
     - name: Enable service danted
       service:
          name: danted
          enabled: yes
-         state: started    
+         state: stopped    
+         
+    - name: Start service danted after yggdrasil
+      community.general.ini_file:
+        path: /lib/systemd/system/danted.service
+        section: Unit
+        option: After
+        value: "network-online.target yggdrasil.service"
+        state: present
+    
+    - name: Enable service danted
+      service:
+         name: danted
+         enabled: yes
+         state: started

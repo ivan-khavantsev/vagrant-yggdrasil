@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
 		yggdrasil.vm.box_version = "11.20211018.1"
 		
 		yggdrasil.vm.provider "virtualbox" do |virtualbox|
-			virtualbox.memory = "256"
+			virtualbox.memory = "512"
 		end
 	
 		yggdrasil.vm.network "private_network", ip: "192.168.56.8"
