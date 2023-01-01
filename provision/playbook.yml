@@ -33,25 +33,14 @@
       register: yggdrasil_config_exist
       when: yggdrasil_install.changed
     
-    - name: Change yggdrasil config path
-      community.general.ini_file:
-        path: /lib/systemd/system/yggdrasil.service
-        section: Service
-        option: ExecStart
-        value: "/usr/sbin/yggdrasil -useconffile /vagrant/yggdrasil.conf"
-        state: present
-    
-    - name: Start service yggdrasil after vagrant shared folder mounted
-      community.general.ini_file:
-        path: /lib/systemd/system/yggdrasil.service
-        section: Unit
-        option: After
-        value: "network-online.target vagrant.mount"
-        state: present
-    
     - name: Generate yggdrasil conf
       shell: yggdrasil -genconf > /vagrant/yggdrasil.conf
       when: yggdrasil_config_exist.changed
+      
+    - name: Copy yggdrasil config
+      ansible.builtin.copy:
+        src: /vagrant/yggdrasil.conf
+        dest: /etc/yggdrasil/yggdrasil.conf  
 
     - name: Enable service yggdrasil
       service:
