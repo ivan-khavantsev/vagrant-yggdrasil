@@ -60,7 +60,7 @@
       loop:
         - {src: "templates/danted.conf", dest: "/etc/danted.conf"} 
       
-    - name: Enable service danted
+    - name: Stop service danted
       service:
          name: danted
          enabled: yes
@@ -69,12 +69,16 @@
     - name: Start service danted after yggdrasil
       community.general.ini_file:
         path: /lib/systemd/system/danted.service
-        section: Unit
-        option: After
-        value: "yggdrasil.service"
+        section: Service
+        option: ExecStartPre
+        value: /bin/sh -c 'until if(ip tuntap | grep -q tun0) then true; else false; fi; do sleep 2; done; \
         state: present 
     
-    - name: Enable service danted
+    - name: Just force systemd to reread configs (2.4 and above)
+      ansible.builtin.systemd:
+        daemon_reload: yes
+    
+    - name: Start service danted
       service:
          name: danted
          enabled: yes
