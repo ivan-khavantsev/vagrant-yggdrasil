@@ -71,7 +71,7 @@
         path: /lib/systemd/system/danted.service
         section: Service
         option: ExecStartPre
-        value: /bin/sh -c 'until if(ip tuntap | grep -q tun0) then true; else false; fi; do sleep 2; done; \
+        value: /bin/sh -c 'sleep 10; until if(ip tuntap | grep -q tun0) then true; else false; fi; do sleep 2; done; \
         state: present 
     
     - name: Just force systemd to reread configs (2.4 and above)
